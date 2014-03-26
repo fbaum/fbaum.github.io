@@ -1,4 +1,4 @@
 <html>
-  <head>Header</head>
+  <head></head>
   <body>Hello World!</body>
 </html>
