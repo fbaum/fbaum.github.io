@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-    <title>Baum: Assignment</title>
+    <title>Francis Baum: JSAPI Assignment</title>
     <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/esri/css/esri.css">
     <style>
         html,
@@ -54,10 +54,12 @@
     </style>
     <script src="http://js.arcgis.com/3.8/"></script>
     <script>
+        // Declare global variables
         var map;
         var geocoder;
         var swipeWidget;
-        //Add reference to the modules in require()
+
+        // Add references to the modules in require()
         require(["esri/map",
                  "esri/dijit/HomeButton",
                  "esri/dijit/BasemapToggle",
@@ -66,8 +68,9 @@
                  "esri/dijit/Legend",
                  "esri/dijit/PopupTemplate",
                  "esri/layers/FeatureLayer",
+                 "esri/layers/LabelLayer",
                  "esri/symbols/SimpleLineSymbol",
-                 "esri/symbols/SimpleFillSymbol",
+                 "esri/symbols/TextSymbol",
                  "esri/renderers/ClassBreaksRenderer",
                  "esri/renderers/SimpleRenderer",
                  "esri/renderers/UniqueValueRenderer",
@@ -76,7 +79,9 @@
                  "dojo/dom",
                  "dojo/on",
                  "dojo/domReady!"], 
-            function(Map,HomeButton,BasemapToggle,Geocoder,LayerSwipe,Legend,PopupTemplate,FeatureLayer,SimpleLineSymbol,SimpleFillSymbol,ClassBreaksRenderer,SimpleRenderer,UniqueValueRenderer,arrayUtils,Color,dom,on) {
+            function(Map,HomeButton,BasemapToggle,Geocoder,LayerSwipe,Legend,PopupTemplate,FeatureLayer,LabelLayer,SimpleLineSymbol,TextSymbol,ClassBreaksRenderer,SimpleRenderer,UniqueValueRenderer,arrayUtils,Color,dom,on) {
+
+                // Create the map.
                 map = new Map("map", {
                     basemap: "gray",
                     center: [-90.5,38.5], // long, lat
@@ -84,29 +89,29 @@
                     sliderStyle: "small"
                 });
 
-                //Create an instance of the Geocoder widget
-                //another parameter we can pass to Geocoder is autoComplete
+                // Create an instance of the Geocoder widget.
                 geocoder = new Geocoder({
                     map:map,
                     autoComplete:false,
-                    value: "St. Louis, MO"
+                    value: "Parkdale, MO"
                 },"geocoder");
                 geocoder.startup();
 
-                //Create an instance of the HomeButton widget 
-                //add a reference to the map, second parameter is where to attach the widget
+                // Create an instance of the HomeButton widget.
+                // Add a reference to the map, second parameter is where to attach the widget.
                 var home = new HomeButton({
                     map:map
                 },"home");
                 home.startup();
 
+                // Create an instance of the BasemapToggle widget.
                 var toggle = new BasemapToggle({
                     map: map,
                     basemap: "satellite"
                 }, "BasemapToggle");
                 toggle.startup();
-                      
-                //Add popup infobox for losing gaining stream segments
+
+                // Define popup template for losing gaining stream segments (lgss).
                 var template_lgss = new PopupTemplate({
                     title: "{CLASS_} Stream Segment",
                     fieldInfos: [{
@@ -127,115 +132,85 @@
                     }]
                 });
 
-                //mediaInfos:[{
-                //  caption: "Details",
-                //    type:"barchart",
-                //    value:{
-                //      theme: "ThreeD",
-                //      fields:["WHITE10","BLACK10","HISP10"],
-                //      normalizeField:"POP10"  
-                //    }
-                //  }]
-        
-                //define user-defined layers from ArcGIS server // new FeatureLayer(url,{options?})
+                // Define user-defined layers from MSDIS ArcGIS REST server // new FeatureLayer(url,{options?})
                 
-                // define MO 1995 State Hydrography
+                // Define MO 1995 State Hydrography layer.
                 var mo1995StateHydrography = new FeatureLayer("http://msdisweb.missouri.edu/ArcGIS/rest/services/MSDIS_Download/MapServer/166", {
                     mode: FeatureLayer.MODE_ONDEMAND, //query mode for the feature layer. MODE_ONDEMAND - features are fetched from the server as needed.
                     outFields: ["LOSING"] //A comma delimited list of field names to include in the FeatureLayer. If not specified, the feature layer will return the OBJECTID field
                 });
                 
-                // define MO 2011 Losing Gaining Stream Segments layer
-                //var mo2011LosingGainingStreamSegments = new FeatureLayer("http://msdisweb.missouri.edu/ArcGIS/rest/services/MSDIS_Download/MapServer/156", {
-                //    mode: FeatureLayer.MODE_ONDEMAND, //query mode for the feature layer. MODE_ONDEMAND - features are fetched from the server as needed.
-                //    outFields: ["STR_NAME", "CLASS_", "MILES"], //A comma delimited list of field names to include in the FeatureLayer. If not specified, the feature layer will return the OBJECTID field
-                //    infoTemplate: template_lgss
-                //});
-
-                // define MO 2013 Losing Gaining Stream Segments layer
+                // Define MO 2013 Losing Gaining Stream Segments layer.
                 var mo2013LosingGainingStreamSegments = new FeatureLayer("http://msdisweb.missouri.edu/ArcGIS/rest/services/MSDIS_Download/MapServer/149", {
                     mode: FeatureLayer.MODE_ONDEMAND, //query mode for the feature layer. MODE_ONDEMAND - features are fetched from the server as needed.
                     outFields: ["STR_NAME", "CLASS_", "MILES"], //A comma delimited list of field names to include in the FeatureLayer. If not specified, the feature layer will return the OBJECTID field
                     infoTemplate: template_lgss
                 });
                 
-                //define Groundwater Elevation layer
+                // Define Groundwater Elevation layer.
                 //var mo2006GroundwaterElevation = new FeatureLayer("http://msdisweb.missouri.edu/ArcGIS/rest/services/MSDIS_Download/MapServer/162", {
                 //    mode: FeatureLayer.MODE_ONDEMAND, //query mode for the feature layer. MODE_ONDEMAND - features are fetched from the server as needed.
                 //    outFields: ["CONTOUR"], //A comma delimited list of field names to include in the FeatureLayer. If not specified, the feature layer will return the OBJECTID field
                 //    opacity: 1.0
                 //});
                 
-                //define Depth to Groundwater layer
+                // Define Depth to Groundwater layer.
                 var mo2006DepthToGroundwater = new FeatureLayer("http://msdisweb.missouri.edu/ArcGIS/rest/services/MSDIS_Download/MapServer/163", {
                     mode: FeatureLayer.MODE_ONDEMAND, //query mode for the feature layer. MODE_ONDEMAND - features are fetched from the server as needed.
                     outFields: ["CONTOUR"], //A comma delimited list of field names to include in the FeatureLayer. If not specified, the feature layer will return the OBJECTID field
                     opacity: 1.0
                 });
                 
-                // The LayerSwipe widget seems to interfere with the PopupTemplate widget
-                // displaying the information box
-                /*
+                // Create a LayerSwipe widget for both stream layers.
+                // In Chrome, the LayerSwipe widget seems to interfere with the PopupTemplate widget from
+                // displaying the information box. They work together in IE, which was unexpected.
+                
                 swipeWidget = new LayerSwipe({
                    type: "vertical",
                    map: map,
                    layers: [mo1995StateHydrography, mo2013LosingGainingStreamSegments]
                 }, "swipeDiv");
-                swipeWidget.startup(); */
-                    
-                //Use renderer to create a color ramp for quantitative data
-               /*mo2006DepthToGroundwater.on("load", function() {
-                
-                    var defaultLineSymbol = new SimpleLineSymbol();
-                    defaultLineSymbol.setColor(new Color([150, 150, 150, 0.5]));
+                swipeWidget.startup();
 
-                    // Add five breaks to the renderer.
-                    // If you have ESRI's ArcMap available, this can be a good way to determine break values.
-                    // You can also copy the RGB values from the color schemes ArcMap applies, or use colors
-                    // from a site like www.colorbrewer.org
-                    //
-                    // alternatively, ArcGIS Server's generate renderer task could be used
-                    var renderer = new ClassBreaksRenderer(defaultLineSymbol, "CONTOUR");
-                    renderer.addBreak(0, 500, new SimpleLineSymbol().setColor(new Color([0, 0, 255, 1.0])));
-                    renderer.addBreak(500, 750, new SimpleLineSymbol().setColor(new Color([51, 194, 255, 1.0])));
-                    renderer.addBreak(750, 1000, new SimpleLineSymbol().setColor(new Color([182, 255, 143, 1.0])));
-                    renderer.addBreak(1000, 1250, new SimpleLineSymbol().setColor(new Color([255, 200, 0, 1.0])));
-                    renderer.addBreak(1250, Infinity, new SimpleLineSymbol().setColor(new Color([255, 0, 0, 1.0])));
-        
-                    mo2006GroundwaterElevation.setRenderer(renderer);
-                }); */
-                
+                // Define a function that runs when the depth to groundwater layer gets loaded.
                 mo2006DepthToGroundwater.on("load", function() {
                 
-                    var defaultLineSymbol = null; // new SimpleLineSymbol();
-                    //defaultLineSymbol.setColor(new Color([150, 150, 150, 0.5]));
+                    // Set defaultLineSymbol to null since all values will bin into a color.
+                    // This will prevent the default line symbol from showing up in the Legend.
+                    var defaultLineSymbol = null;                    
 
-                    // Add five breaks to the renderer.
-                    // If you have ESRI's ArcMap available, this can be a good way to determine break values.
-                    // You can also copy the RGB values from the color schemes ArcMap applies, or use colors
-                    // from a site like www.colorbrewer.org
-                    //
-                    // alternatively, ArcGIS Server's generate renderer task could be used
+                    // Create a ClassBreaksRenderer and add five breaks to define a color ramp
+                    // for the depth to groundwater contour lines.
                     var renderer = new ClassBreaksRenderer(defaultLineSymbol, "CONTOUR");
-                    renderer.addBreak(0, 80, new SimpleLineSymbol().setColor(new Color([255, 0, 0, 1.0])));
-                    renderer.addBreak(80, 140, new SimpleLineSymbol().setColor(new Color([255, 200, 0, 1.0])));
-                    renderer.addBreak(140, 210, new SimpleLineSymbol().setColor(new Color([182, 255, 143, 1.0])));
-                    renderer.addBreak(210, 290, new SimpleLineSymbol().setColor(new Color([51, 194, 255, 1.0])));
-                    renderer.addBreak(290, Infinity, new SimpleLineSymbol().setColor(new Color([0, 0, 255, 1.0])));
+                    renderer.addBreak(0, 80, new SimpleLineSymbol().setColor(new Color([255, 0, 0, 1.0])));         // red
+                    renderer.addBreak(80, 140, new SimpleLineSymbol().setColor(new Color([255, 200, 0, 1.0])));     // yellow
+                    renderer.addBreak(140, 210, new SimpleLineSymbol().setColor(new Color([182, 255, 143, 1.0])));  // green
+                    renderer.addBreak(210, 290, new SimpleLineSymbol().setColor(new Color([51, 194, 255, 1.0])));   // light blue
+                    renderer.addBreak(290, 480, new SimpleLineSymbol().setColor(new Color([0, 0, 255, 1.0])));      // blue
         
                     mo2006DepthToGroundwater.setRenderer(renderer);
-                    
-                    mo2006DepthToGroundwater.on("mouse-move", showCoordinates);
-                    mo2006DepthToGroundwater.on("mouse-drag", showCoordinates);
                 });
                 
+                // When the mouse moves over the map, display the lat/lon coordinates on a status widget.
+                map.on("load", function() {                    
+                    map.on("mouse-move", showCoordinates);
+                });
+
                 function showCoordinates(evt) {
-                    console.log("show");
+                    // Thought this might fix the problem in which the LayerSwipe widget 
+                    // seems to prevent the display of the PopupTemplate info box.
+                    /*if (!evt.preventDefault) {
+                        evt.preventDefault = function() {
+                            evt.returnValue = false; //ie
+                        };
+                    } */
+
+                    //console.log("show");
                     //get mapPoint from event
                     //The map is in web mercator - modify the map point to display the results in geographic
                     var mp = esri.geometry.webMercatorToGeographic(evt.mapPoint);
                     //display mouse coordinates
-                    dojo.byId("gwinfo").innerHTML = mp.x.toFixed(3) + ", " + mp.y.toFixed(3);
+                    dojo.byId("coordinfo").innerHTML = mp.y.toFixed(4) + ", " + mp.x.toFixed(4);
                 }
                  
                 //Use renderer to create a simple red/green color ramp for losing/gaining stream segments
@@ -243,10 +218,16 @@
                 //    setRedGreenLineColorRenderer(mo2011LosingGainingStreamSegments);
                 //});
 
-                //Use renderer to create a simple red/green color ramp for losing/gaining stream segments
+                // Define a function that runs when the the losing/gaining stream segments layer gets loaded.
                 mo2013LosingGainingStreamSegments.on("load", function() {
                     setRedGreenLineColorRenderer(mo2013LosingGainingStreamSegments);
                 });
+
+                // Use a UniqueValueRenderer to symbolize the different stream segments:
+                // Default stream segments are blue lines.
+                // Losing stream segments are red lines.
+                // Gaining stream segments are green lines.
+                // Make the red/green lines wider than the blue lines.
 
                 function setRedGreenLineColorRenderer(lgsslayer) {
                     var defaultSymbol = new SimpleLineSymbol().setColor(new Color([0, 0, 255])); // blue
@@ -264,19 +245,25 @@
                 }
                 
                 map.addLayers([mo2006DepthToGroundwater, mo1995StateHydrography, mo2013LosingGainingStreamSegments]);
+                //map.addLayer(mo2006DepthToGroundwater);
+                //map.addLayer(mo1995StateHydrography);
+                //map.addLayer(mo2013LosingGainingStreamSegments);
+
+                // DEBUG: hide a layer or write to console
                 //mo2006GroundwaterElevation.hide();
                 //console.log(mo2006GroundwaterElevation.visible);
                 
-                //Add Legend to the map
                 //map.on is using the dojo event handler - on(eventType,listener), same as on(map,"layers-add-result","function(evt){...})
                 //layers-add-result event is fired after all map layers have been added using map.addLayers
                 map.on("layers-add-result", function (evt) {
 				
+                    // Add a Legend to the map with just the depth to groundwater and 
+                    // losing/gaining stream segments layers.
                     var legend = new Legend({
                         map: map,
                         layerInfos: [{
                             layer: mo2006DepthToGroundwater,
-                            title: "Groundwater Elevation"
+                            title: "Groundwater Elevation (ft)"
                         }, {
                             layer: mo2013LosingGainingStreamSegments,
                             title: "Losing Gaining Stream Segments"
@@ -284,27 +271,23 @@
                     }, "legend");
                     legend.startup();
                     
-                    if (!event.preventDefault) {
-                        event.preventDefault = function() {
-                            event.returnValue = false; //ie
-                        };
-                    }
-                    //addLabels();
+                    // Add labels for the depth to groundwater contour lines.
+                    addLabels();
                 });
                 
                 function addLabels() {
                     // create a text symbol to define the style of labels
-                    var labelField = "STR_NAME";
-                    var lgssLabel = new TextSymbol().setColor(new Color("#de2d26"));
-                    lgssLabel.font.setSize("10pt");
-                    lgssLabel.font.setFamily("arial");
-                    lgssLabel.font.setWeight(esri.symbol.Font.WEIGHT_BOLD);
-                    var lgssLabelRenderer = new SimpleRenderer(lgssLabel);
+                    var labelField = "CONTOUR";
+                    var d2gwLabel = new TextSymbol().setColor(new Color("#000000"));
+                    d2gwLabel.font.setSize("10pt");
+                    d2gwLabel.font.setFamily("arial");
+                    //d2gwLabel.font.setWeight(esri.symbol.Font.WEIGHT_BOLD);
+                    var d2gwLabelRenderer = new SimpleRenderer(d2gwLabel);
                     var labels = new LabelLayer({
                         id: "labels"
                     });
                     // tell the label layer to label the districts feature layer 
-                    labels.addFeatureLayer(mo2013LosingGainingStreamSegments, lgssLabelRenderer, "${" + labelField + "}");
+                    labels.addFeatureLayer(mo2006DepthToGroundwater, d2gwLabelRenderer, "${" + labelField + "}");
                     // add the label layer to the map
                     map.addLayer(labels);
                 }
@@ -319,7 +302,7 @@
         <div id="home"></div>
         <div id="BasemapToggle"></div>
         <div id="swipeDiv"></div>
-        <span id="gwinfo" style="position:absolute; left:15px; bottom:5px; color:#000; z-index:50;"></span>
+        <span id="coordinfo" style="position:absolute; left:15px; bottom:5px; color:#000; z-index:50;"></span>
         <div id="info" style="font-size: 20px;">Legend
             <div id="legend"></div>
         </div>
