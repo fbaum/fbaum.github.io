@@ -33,7 +33,7 @@
 		};
 
                 // Display imported levees data instead of local myLines data
-		L.geoJson(levees, { // myLines, {
+		L.geoJson(levees, { 
 			style: myStyle
 		}).addTo(map);
             
@@ -66,14 +66,7 @@
             }];
 
             // Display statesData imported from website instead of local "states" data
-            L.geoJson(statesData, {
-                style: function(feature) {
-                    switch (feature.properties.party) {
-                        case 'Republican': return {color: "#ff0000"};
-                        case 'Democrat':   return {color: "#0000ff"};
-                    }
-                }
-            }).addTo(map);
+            L.geoJson(statesData}).addTo(map);
             
             map.setView([38.8, -90.5], 13);
         }
