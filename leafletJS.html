@@ -1,45 +1,40 @@
 <html>
 <head>
-	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
-	<style>
-		#map { height: 600px; }
-	</style>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+    <style>
+        #map { height: 600px; }
+    </style>
 </head>
 <body>
     <div id="map"></div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
     <script src="levees.js" type="text/javascript"></script>
-    <script src="http://leafletjs.com/examples/us-states.js" type="text/javascript"></script>
     <script>
-		var map = L.map('map').setView([38.4, -90.1], 13);
-		L.tileLayer('http://{s}.tile.cloudmade.com/10d9f8e4181a5b2888c2aca2114fa09c/997/256/{z}/{x}/{y}.png', {
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
-			maxZoom: 18
-		}).addTo(map);
+        var map = L.map('map').setView([38.8, -90.5], 13);
+        L.tileLayer('http://{s}.tile.cloudmade.com/10d9f8e4181a5b2888c2aca2114fa09c/997/256/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+            maxZoom: 18
+        }).addTo(map);
             
-                // style option
-		var myLines = [{
-			"type": "LineString",
-			"coordinates": [[-100, 40], [-105, 45], [-110, 55]]
-		}, {
-			"type": "LineString",
-			"coordinates": [[-105, 40], [-110, 45], [-115, 55]]
-		}];
+        // style option
+        var myLines = [{
+            "type": "LineString",
+            "coordinates": [[-100, 40], [-105, 45], [-110, 55]]
+        }, {
+            "type": "LineString",
+            "coordinates": [[-105, 40], [-110, 45], [-115, 55]]
+        }];
 
-		var myStyle = {
-			"color": "#00ff00", // green
-			"weight": 5,
-			"opacity": 0.65
-		};
+        var myStyle = {
+            "color": "#00ff00", // green
+            "weight": 5,
+            "opacity": 0.65
+        };
 
-                // Display imported levees data instead of local myLines data
-		L.geoJson(levees, { 
-			style: myStyle
-		}).addTo(map);
-            
-                map.setView([38.8, -90.5], 13);
-        }
-
-	</script>
+        // Display imported levees data instead of local myLines data
+        L.geoJson(levees, { 
+            style: myStyle
+        }).addTo(map);
+    </script>
 </body>
 </html>
