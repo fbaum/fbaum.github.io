@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+        <title>Francis Baum's Leaflet Assignment</title>
+        <style>
+            #map { height: 600px; }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+        
+        <!-- Import files where data is defined as variables -->
+        <script src="levees.js" type="text/javascript"></script>
+        <script src="Census_Tracts_2010.js" type="text/javascript"></script>
+        <script src="Soil_Survey.js" type="text/javascript"></script>
+        <script src="PrefinalSample.js" type="text/javascript"></script>
+        
+        <!-- Script to create Leaflet map and add data layers -->
+        <script>
+            // Create a GeoJSON object and add the levees data to it.
+            var gjptSample = L.geoJson();
+            gjptSample.addData(sample);
+
+            // Define the line style.
+            var lineStyle = {
+                "color": "#00ff55", // green
+                "weight": 5,
+                "opacity": 1.00
+            };
+
+            // Create a GeoJSON object and add the levees data to it.
+            var gjlsLevees = L.geoJson();
+            gjlsLevees.addData(levees);
+            gjlsLevees.setStyle(lineStyle);
+            
+            // Define the polygon style.
+            var polygonStyle = {
+                "color": "#ff0000", // red
+                "weight": 1,
+                "opacity": 1.00
+            };
+
+            // Create a GeoJSON object and add the Census Tracts 2010 data to it.
+            // Bind a popup to the tract polygons that will display the tract's name.
+            var gjpgCensusTracts2010 = L.geoJson(censusTracts2010, {onEachFeature: 
+                    function (feature, layer) {
+                        layer.bindPopup(feature.properties.NAMELSAD10);
+                    }
+                }
+            );
+            
+            // Use random colors to style the tract polygons.
+            gjpgCensusTracts2010.setStyle(function(feature) {
+                    //var colorStr = feature.properties.GEOID10.toString(16).lpad("0", 6);
+                    var maxNum = 16777215; // #ffffff
+                    var colorStr = "#" + ("000000" + Math.floor(Math.random()*maxNum).toString(16)).slice(-6);
+                    return {"color": colorStr, "weight": 1, "opacity": 1.00};
+                }
+            );
+
+            // Create a GeoJSON object and add the Soil Suvery data to it.
+            // Bind a popup to the survey polygons that will display all the properties.
+            var gjpgSoilSurvey = L.geoJson(soilSurvey, {onEachFeature: 
+                    function (feature, layer) {
+                        layer.bindPopup("MUID: " + feature.properties.MUID + "<BR>" +
+                                        "SSAID: " + feature.properties.SSAID.toString() + "<BR>" +
+                                        "MLRA: " + feature.properties.MLRA.toString() + "<BR>" +
+                                        "MUKIND: " + feature.properties.MUKIND + "<BR>" +
+                                        "Acres: " + feature.properties.MUACRES.toString() + "<BR>" +
+                                        "Description: " + feature.properties.MUNAME);
+                    }
+                }
+            );
+            
+            // Color survey polygons based on the MUKIND property.
+            gjpgSoilSurvey.setStyle(function(feature) {
+                    switch (feature.properties.MUKIND) {
+                        case 'C': return {"color": "#ff0000", "weight": 1}; // red
+                        case 'X': return {"color": "#0000ff", "weight": 1}; // blue
+                        default : return {"color": "#ffffff", "weight": 1}; // gray
+                    }
+                }
+            );
+            
+            // Define the CloudMade map tiles and attributes to use.
+            var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/10d9f8e4181a5b2888c2aca2114fa09c/{styleId}/256/{z}/{x}/{y}.png';
+            var cloudmadeAttribution = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>';
+
+            // Define alternate map tiles to use.
+            var minimal      = L.tileLayer(cloudmadeUrl, {styleId: 22677, attribution: cloudmadeAttribution});
+            var midnight     = L.tileLayer(cloudmadeUrl, {styleId: 999,   attribution: cloudmadeAttribution});
+            var highways     = L.tileLayer(cloudmadeUrl, {styleId: 46561, attribution: cloudmadeAttribution});
+            var openstreets  = L.tileLayer(cloudmadeUrl, {styleId: 997,   attribution: cloudmadeAttribution});
+
+            // Define a Layer Group to hold the levees and soil survey features.
+            var overlays = L.layerGroup([gjptSample, gjlsLevees, gjpgSoilSurvey]);
+            
+            // Create a map and add the different layers created above.
+            var map = L.map('map', {
+                center: new L.LatLng(38.8, -90.4),
+                zoom: 14,
+                layers: [openstreets, highways, overlays, gjpgCensusTracts2010]
+                //layers: [openstreets, highways, gjlsLevees, gjpgSoilSurvey, gjpgCensusTracts2010]
+            });
+
+            // Define which basemaps to include in the Layer Control.
+            var baseMaps = {
+                "OpenStreetMap": openstreets,
+                "Minimal": minimal,
+                "Midnight": midnight
+            };
+
+            // Define which overlays to include in the Layer Control.
+            var overlayMaps = {
+                "Highways": highways,
+                "Levees & Soil Surveys": overlays,
+                //"Levees": gjlsLevees,
+                //"Soil Surveys": gjpgSoilSurvey,
+                "Census Tracts 2010": gjpgCensusTracts2010
+            };
+            
+            // Create the Layer Control so user can turn on/off basemaps and overlays.
+            L.control.layers(baseMaps, overlayMaps).addTo(map);
+            
+        </script>
+    </body>
+</html>
