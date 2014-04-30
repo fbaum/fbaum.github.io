@@ -1,4 +1,4 @@
-{ "type": "FeatureCollection",
+var sample = { "type": "FeatureCollection",
   "features": [ 
     { "type": "Feature",
       "geometry": {"type": "Point", "coordinates": [-90.30445, 38.64908]},
@@ -37,4 +37,4 @@
         "Bldg": "010: Beaumont Pavillion" }
     }
   ]
-}
+};
